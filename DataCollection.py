@@ -1,4 +1,4 @@
-# DataCollection.py (Revised for folder structure)
+# DataCollection.py
 import os
 import numpy as np
 import cv2
@@ -17,7 +17,7 @@ if not cap.isOpened():
     print("Cannot access camera.")
     exit()
 
-with mp.solutions.holistic.Holistic(min_detection_confidence=0.60, min_tracking_confidence=0.60) as holistic:
+with mp.solutions.holistic.Holistic(min_detection_confidence=0.70, min_tracking_confidence=0.70) as holistic:
     for action, sequence in product(actions, range(sequences)):
         action_path = os.path.join(PATH, action, str(sequence))
         os.makedirs(action_path, exist_ok=True)  # Create folder structure if it doesn't exist
@@ -36,7 +36,7 @@ with mp.solutions.holistic.Holistic(min_detection_confidence=0.60, min_tracking_
                     cv2.putText(image, f'Press "Space" to start recording "{action}"', (10, 30),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
                     cv2.imshow('Camera', image)
-                    if keyboard.is_pressed(' '):  # Start on spacebar press
+                    if keyboard.is_pressed(' '):  
                         break
                     if cv2.waitKey(1) & 0xFF == ord('q'):
                         cap.release()

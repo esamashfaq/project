@@ -16,6 +16,7 @@ model = load_model('my_model.h5')
 # Initialize prediction and sentence-related lists
 sentence, keypoints, last_prediction = [], [], None
 cooldown_frames, cooldown_threshold = 0, 20  # Cooldown period of 20 frames after each prediction
+skip_frames_after_hand_detected, skip_counter = 5, 0  # Skip 5 frames after hand is detected
 
 # Open camera for capturing
 cap = cv2.VideoCapture(0)
@@ -24,32 +25,52 @@ if not cap.isOpened():
     exit()
 
 with mp.solutions.holistic.Holistic(min_detection_confidence=0.80, min_tracking_confidence=0.80) as holistic:
+    hand_present = False  # Track if a hand is present
+
     while cap.isOpened():
         # Capture frame from camera
         ret, image = cap.read()
         if not ret:
             break
-        
+
         # Process frame and extract keypoints
         results = image_process(image, holistic)
         draw_landmarks(image, results)
-        keypoints.append(keypoint_extraction(results))
 
-        # Predict every 10 frames if cooldown is not active
-        if len(keypoints) == 20 and cooldown_frames == 0:
-            keypoints = np.array(keypoints)
-            prediction = model.predict(keypoints[np.newaxis, :, :])
-            keypoints = []
+        # Check if a hand is present in the frame
+        hand_detected = results.left_hand_landmarks or results.right_hand_landmarks
 
-            # Check if the prediction exceeds threshold
-            if np.max(prediction) >= 0.99:
-                predicted_action = actions[np.argmax(prediction)]
-                
-                # Only append if prediction differs from the last one
-                if predicted_action != last_prediction:
-                    sentence.append(predicted_action)
-                    last_prediction = predicted_action
-                    cooldown_frames = cooldown_threshold  # Activate cooldown
+        if hand_detected:
+            if not hand_present:
+                # Hand just appeared, start skip counter
+                hand_present = True
+                skip_counter = skip_frames_after_hand_detected
+            elif skip_counter > 0:
+                # Continue skipping frames for stabilization
+                skip_counter -= 1
+                continue
+
+            # Extract keypoints after hand has been stable for 5 frames
+            keypoints.append(keypoint_extraction(results))
+
+            # Predict every 20 frames if cooldown is not active
+            if len(keypoints) == 20 and cooldown_frames == 0:
+                keypoints = np.array(keypoints)
+                prediction = model.predict(keypoints[np.newaxis, :, :])
+                keypoints = []
+
+                # Check if the prediction exceeds threshold
+                if np.max(prediction) >= 0.98:
+                    predicted_action = actions[np.argmax(prediction)]
+
+                    # Only append if prediction differs from the last one
+                    if predicted_action != last_prediction:
+                        sentence.append(predicted_action)
+                        last_prediction = predicted_action
+                        cooldown_frames = cooldown_threshold  # Activate cooldown
+
+        else:
+            hand_present = False  # Reset if no hand is detected
 
         # Decrease cooldown frame count
         cooldown_frames = max(0, cooldown_frames - 1)
