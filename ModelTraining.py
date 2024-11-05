@@ -1,4 +1,4 @@
-# ModelTraining.py (Modified for hand keypoints only)
+# ModelTraining.py
 import numpy as np
 import os
 from sklearn.model_selection import train_test_split
