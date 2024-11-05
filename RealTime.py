@@ -11,7 +11,7 @@ PATH = os.path.join('data')
 actions = np.array(os.listdir(PATH))
 
 # Load the trained model
-model = load_model('my_model.h5')
+model = load_model('my_modelTBNN.h5')
 
 # Initialize prediction and sentence-related lists
 sentence, keypoints, last_prediction = [], [], None
@@ -24,7 +24,7 @@ if not cap.isOpened():
     print("Cannot access camera.")
     exit()
 
-with mp.solutions.holistic.Holistic(min_detection_confidence=0.80, min_tracking_confidence=0.80) as holistic:
+with mp.solutions.holistic.Holistic(min_detection_confidence=0.70, min_tracking_confidence=0.70) as holistic:
     hand_present = False  # Track if a hand is present
 
     while cap.isOpened():
@@ -71,6 +71,7 @@ with mp.solutions.holistic.Holistic(min_detection_confidence=0.80, min_tracking_
 
         else:
             hand_present = False  # Reset if no hand is detected
+            keypoints = []  # Clear keypoints when hands go out of frame
 
         # Decrease cooldown frame count
         cooldown_frames = max(0, cooldown_frames - 1)

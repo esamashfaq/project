@@ -28,7 +28,7 @@ X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.10, random
 from tensorflow.keras.layers import Input
 
 model = Sequential([
-    Input(shape=(frames, 126)),  # Update input shape for hand landmarks only
+    Input(shape=(frames, 126)),  
     Conv1D(64, kernel_size=3, activation='relu'),
     MaxPooling1D(pool_size=2),
     LSTM(32, return_sequences=True, activation='relu'),

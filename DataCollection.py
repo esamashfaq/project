@@ -7,7 +7,7 @@ from itertools import product
 from KeypointsExtraction import *
 import keyboard
   
-actions = np.array(['ABC', 'I am fine', 'My name is', 'Good Morning', 'Hello', 'Namaste'])
+actions = np.array(['X'])
 sequences, frames = 30, 20
 PATH = os.path.join('data')
 
